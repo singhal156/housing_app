@@ -573,47 +573,71 @@ if uploaded_files:
         with st.expander(f"📷 {r['filename']} - {get_quality_emoji(r['sharpness']['score'])} {r['sharpness']['quality']}", expanded=(idx == 0)):
             col1, col2 = st.columns([1, 2])
             
+            # -----------------------------
+            # LEFT COLUMN (Image + View + Reconstructibility)
+            # -----------------------------
             with col1:
                 st.image(r['image'], use_container_width=True)
-                st.caption(f"Detected View: **{r['view']}**")
-            
+
+                # More prominent Detected View
+                st.markdown(
+                    f"""
+                    <div style="font-size:1.1rem; font-weight:600; margin-top:0.5rem;">
+                        Detected View: <span style="font-weight:700;">{r['view']}</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # Reconstructibility Score directly under image
+                recon_class = get_quality_color_class(r['reconstructibility'])
+                st.markdown(
+                    f"""
+                    <div style="margin-top:0.5rem;">
+                        <strong>Reconstructibility Score:</strong><br>
+                        <span class="{recon_class}" style="font-size:1.2rem;">
+                            {r['reconstructibility']:.2f} / 1.0
+                        </span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            # -----------------------------
+            # RIGHT COLUMN (Metrics)
+            # -----------------------------
             with col2:
                 # Metrics in columns
                 metric_col1, metric_col2, metric_col3 = st.columns(3)
                 
+                # Sharpness
                 with metric_col1:
                     sharp_class = get_quality_color_class(r['sharpness']['score'])
-                    st.markdown(f"**Sharpness**")
+                    st.markdown("**Sharpness**")
                     st.markdown(f"<span class='{sharp_class}'>{r['sharpness']['quality']}</span>", unsafe_allow_html=True)
                     if show_calibration:
                         st.caption(f"Lap: {r['sharpness']['lap_value']:.0f} | Ten: {r['sharpness']['ten_value']:.0f}")
                 
+                # Lighting
                 with metric_col2:
                     light_class = get_quality_color_class(1.0 if r['lighting']['ok'] else 0.3)
-                    st.markdown(f"**Lighting**")
+                    st.markdown("**Lighting**")
                     st.markdown(f"<span class='{light_class}'>{'Good' if r['lighting']['ok'] else ', '.join(r['lighting']['issues'])}</span>", unsafe_allow_html=True)
                     if show_calibration:
                         st.caption(f"Bright: {r['lighting']['brightness']:.0f} | Contrast: {r['lighting']['contrast']:.0f}")
                 
+                # Features
                 with metric_col3:
                     feat_class = get_quality_color_class(r['features']['score'])
-                    st.markdown(f"**Features**")
+                    st.markdown("**Features**")
                     st.markdown(f"<span class='{feat_class}'>{r['features']['quality']}</span>", unsafe_allow_html=True)
                     st.caption(f"{r['features']['num_features']} keypoints")
                 
-                # Resolution and Reconstructibility
+                # Resolution (only)
                 st.markdown("---")
-                res_col1, res_col2 = st.columns(2)
-                
-                with res_col1:
-                    res_emoji = "✅" if r['resolution_score'] >= 1.0 else "⚠️" if r['resolution_score'] >= 0.5 else "❌"
-                    st.markdown(f"**Resolution:** {res_emoji} {r['width']}×{r['height']}")
-                
-                with res_col2:
-                    recon_class = get_quality_color_class(r['reconstructibility'])
-                    st.markdown(f"**Reconstructibility Score:**")
-                    st.markdown(f"<span class='{recon_class}'>{r['reconstructibility']:.2f}/1.0</span>", unsafe_allow_html=True)
-                
+                res_emoji = "✅" if r['resolution_score'] >= 1.0 else "⚠️" if r['resolution_score'] >= 0.5 else "❌"
+                st.markdown(f"**Resolution:** {res_emoji} {r['width']}×{r['height']}")
+
                 # Texture Analysis
                 st.markdown("---")
                 st.markdown("**Texture Analysis**")
@@ -642,7 +666,10 @@ if uploaded_files:
                         st.image((r['blank_mask'] * 255).astype(np.uint8), caption="Blank Areas", use_container_width=True)
                     with viz_col3:
                         st.image((r['gloss_mask'] * 255).astype(np.uint8), caption="Glossy Areas", use_container_width=True)
-    
+
+
+
+
     # Overlap Analysis
     if len(images) > 1:
         st.markdown('<div class="section-header">🔗 Image Overlap Analysis</div>', unsafe_allow_html=True)
