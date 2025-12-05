@@ -1,0 +1,12 @@
+streamlit>=1.24
+numpy
+pillow
+opencv-contrib-python-headless
+google-cloud-vision
+python-dotenv
+pandas
+plotly
+streamlit
+google-api-core
+networkx
+
